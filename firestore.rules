@@ -1,0 +1,332 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Hardened Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Validation Blueprint: UserProfile (/users/{userId})
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+        'uid',
+        'displayName',
+        'examDate',
+        'targetScore',
+        'streakDays',
+        'xpPoints',
+        'syllabusCompletionPct',
+        'latestMockScore',
+        'completedChapterIds',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid',
+        'displayName',
+        'examDate',
+        'targetScore',
+        'streakDays',
+        'xpPoints',
+        'syllabusCompletionPct',
+        'latestMockScore',
+        'completedChapterIds',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.uid == request.auth.uid &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+      data.examDate is string && data.examDate.size() >= 8 && data.examDate.size() <= 30 &&
+      data.targetScore is int && data.targetScore >= 0 && data.targetScore <= 720 &&
+      data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 3650 &&
+      data.xpPoints is int && data.xpPoints >= 0 && data.xpPoints <= 1000000 &&
+      data.syllabusCompletionPct is int && data.syllabusCompletionPct >= 0 && data.syllabusCompletionPct <= 100 &&
+      data.latestMockScore is int && data.latestMockScore >= -180 && data.latestMockScore <= 720 &&
+      data.completedChapterIds is list && data.completedChapterIds.size() <= 100 &&
+      (data.completedChapterIds.size() == 0 || (data.completedChapterIds[0] is string && data.completedChapterIds[0].size() >= 1 && data.completedChapterIds[0].size() <= 64)) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: MockTestRecord (/users/{userId}/mockTests/{testId})
+    function isValidMockTest(data) {
+      return data.keys().hasAll([
+        'uid',
+        'title',
+        'testDate',
+        'physicsScore',
+        'chemistryScore',
+        'biologyScore',
+        'totalScore',
+        'accuracyPct',
+        'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid',
+        'title',
+        'testDate',
+        'physicsScore',
+        'chemistryScore',
+        'biologyScore',
+        'totalScore',
+        'accuracyPct',
+        'createdAt'
+      ]) &&
+      data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.uid == request.auth.uid &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+      data.testDate is string && data.testDate.size() >= 8 && data.testDate.size() <= 30 &&
+      data.physicsScore is int && data.physicsScore >= -45 && data.physicsScore <= 180 &&
+      data.chemistryScore is int && data.chemistryScore >= -45 && data.chemistryScore <= 180 &&
+      data.biologyScore is int && data.biologyScore >= -90 && data.biologyScore <= 360 &&
+      data.totalScore is int && data.totalScore >= -180 && data.totalScore <= 720 &&
+      data.accuracyPct is int && data.accuracyPct >= 0 && data.accuracyPct <= 100 &&
+      data.createdAt is timestamp;
+    }
+
+    // Validation Blueprint: ForumPost (/forumPosts/{postId})
+    function isValidForumPost(data) {
+      return data.keys().hasAll([
+        'authorId',
+        'authorName',
+        'subject',
+        'chapter',
+        'title',
+        'body',
+        'upvotes',
+        'replyCount',
+        'resolved',
+        'visibility',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'authorId',
+        'authorName',
+        'subject',
+        'chapter',
+        'title',
+        'body',
+        'upvotes',
+        'replyCount',
+        'resolved',
+        'visibility',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 && data.authorId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+      data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 30 &&
+      data.subject in ['Physics', 'Chemistry', 'Botany', 'Zoology', 'Strategy'] &&
+      data.chapter is string && data.chapter.size() >= 1 && data.chapter.size() <= 100 &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+      data.body is string && data.body.size() >= 1 && data.body.size() <= 2000 &&
+      data.upvotes is int && data.upvotes >= 0 && data.upvotes <= 100000 &&
+      data.replyCount is int && data.replyCount >= 0 && data.replyCount <= 10000 &&
+      data.resolved is bool &&
+      data.visibility is string && data.visibility.size() == 6 && data.visibility == 'public' &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: StudyGroup (/studyGroups/{groupId})
+    function isValidStudyGroup(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'ownerName',
+        'name',
+        'focusTopic',
+        'weeklyGoalHours',
+        'memberCount',
+        'avgMockScore',
+        'visibility',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId',
+        'ownerName',
+        'name',
+        'focusTopic',
+        'weeklyGoalHours',
+        'memberCount',
+        'avgMockScore',
+        'visibility',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.ownerName is string && data.ownerName.size() >= 1 && data.ownerName.size() <= 80 &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+      data.focusTopic is string && data.focusTopic.size() >= 1 && data.focusTopic.size() <= 140 &&
+      data.weeklyGoalHours is int && data.weeklyGoalHours >= 1 && data.weeklyGoalHours <= 120 &&
+      data.memberCount is int && data.memberCount >= 1 && data.memberCount <= 5000 &&
+      data.avgMockScore is int && data.avgMockScore >= -180 && data.avgMockScore <= 720 &&
+      data.visibility is string && data.visibility.size() == 6 && data.visibility == 'public' &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Collection: /users/{userId}
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+      allow create: if isVerified() &&
+        isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'displayName',
+            'examDate',
+            'targetScore',
+            'streakDays',
+            'xpPoints',
+            'syllabusCompletionPct',
+            'latestMockScore',
+            'completedChapterIds',
+            'updatedAt'
+          ])
+        );
+      allow delete: if isVerified() && isOwner(userId) && isValidId(userId);
+
+      // Subcollection: /users/{userId}/mockTests/{testId}
+      match /mockTests/{testId} {
+        allow get: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidId(testId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow list: if isOwner(userId) &&
+          existing().uid == request.auth.uid;
+        allow create: if isVerified() &&
+          isOwner(userId) &&
+          isValidId(userId) &&
+          isValidId(testId) &&
+          isValidMockTest(incoming()) &&
+          incoming().uid == userId &&
+          incoming().createdAt == request.time &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow update: if false;
+        allow delete: if isVerified() &&
+          isOwner(userId) &&
+          isValidId(userId) &&
+          isValidId(testId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+      }
+    }
+
+    // Collection: /forumPosts/{postId}
+    match /forumPosts/{postId} {
+      allow get: if isSignedIn() &&
+        isValidId(postId) &&
+        (existing().visibility == 'public' || existing().authorId == request.auth.uid);
+      allow list: if isSignedIn() &&
+        (existing().visibility == 'public' || existing().authorId == request.auth.uid);
+      allow create: if isVerified() &&
+        isValidId(postId) &&
+        isValidForumPost(incoming()) &&
+        incoming().authorId == request.auth.uid &&
+        incoming().upvotes == 0 &&
+        incoming().replyCount == 0 &&
+        incoming().resolved == false &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(postId) &&
+        isValidForumPost(incoming()) &&
+        existing().resolved == false &&
+        incoming().authorId == existing().authorId &&
+        incoming().authorName == existing().authorName &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Author edits post or marks resolved
+          (existing().authorId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['title', 'body', 'resolved', 'updatedAt'])) ||
+          // Action 2: Peer upvotes or increments replyCount
+          (incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'replyCount', 'updatedAt']) &&
+            incoming().upvotes >= existing().upvotes &&
+            incoming().upvotes <= existing().upvotes + 1 &&
+            incoming().replyCount >= existing().replyCount &&
+            incoming().replyCount <= existing().replyCount + 1)
+        );
+      allow delete: if isVerified() &&
+        isValidId(postId) &&
+        existing().authorId == request.auth.uid;
+    }
+
+    // Collection: /studyGroups/{groupId}
+    match /studyGroups/{groupId} {
+      allow get: if isSignedIn() &&
+        isValidId(groupId) &&
+        (existing().visibility == 'public' || existing().ownerId == request.auth.uid);
+      allow list: if isSignedIn() &&
+        (existing().visibility == 'public' || existing().ownerId == request.auth.uid);
+      allow create: if isVerified() &&
+        isValidId(groupId) &&
+        isValidStudyGroup(incoming()) &&
+        incoming().ownerId == request.auth.uid &&
+        incoming().memberCount == 1 &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerified() &&
+        isValidId(groupId) &&
+        isValidStudyGroup(incoming()) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().ownerName == existing().ownerName &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Owner updates group details
+          (existing().ownerId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'focusTopic', 'weeklyGoalHours', 'avgMockScore', 'updatedAt'])) ||
+          // Action 2: Peer joins group and updates memberCount / avgMockScore
+          (incoming().diff(existing()).affectedKeys().hasOnly(['memberCount', 'avgMockScore', 'updatedAt']) &&
+            incoming().memberCount == existing().memberCount + 1)
+        );
+      allow delete: if isVerified() &&
+        isValidId(groupId) &&
+        existing().ownerId == request.auth.uid;
+    }
+  }
+}

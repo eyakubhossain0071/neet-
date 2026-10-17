@@ -1,0 +1,326 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated NEET student profile and synchronized study progress state.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Student display name.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "examDate": {
+          "type": "string",
+          "description": "Target NEET exam ISO date string.",
+          "minLength": 8,
+          "maxLength": 30
+        },
+        "targetScore": {
+          "type": "integer",
+          "description": "Target score out of 720."
+        },
+        "streakDays": {
+          "type": "integer",
+          "description": "Current consecutive daily study streak."
+        },
+        "xpPoints": {
+          "type": "integer",
+          "description": "Gamified XP earned from syllabus completion and mock tests."
+        },
+        "syllabusCompletionPct": {
+          "type": "integer",
+          "description": "Overall NCERT syllabus completion percentage (0-100)."
+        },
+        "latestMockScore": {
+          "type": "integer",
+          "description": "Most recent mock test score (-180 to 720)."
+        },
+        "completedChapterIds": {
+          "type": "array",
+          "description": "Bounded list of completed NCERT chapter IDs (max 100)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "examDate",
+        "targetScore",
+        "streakDays",
+        "xpPoints",
+        "syllabusCompletionPct",
+        "latestMockScore",
+        "completedChapterIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MockTestRecord": {
+      "title": "MockTestRecord",
+      "description": "Individual NEET 720-mark mock test score record belonging to a user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Mock test name or series identifier.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "testDate": {
+          "type": "string",
+          "description": "Date the mock test was taken.",
+          "minLength": 8,
+          "maxLength": 30
+        },
+        "physicsScore": {
+          "type": "integer",
+          "description": "Physics section score (-45 to 180)."
+        },
+        "chemistryScore": {
+          "type": "integer",
+          "description": "Chemistry section score (-45 to 180)."
+        },
+        "biologyScore": {
+          "type": "integer",
+          "description": "Biology (Botany + Zoology) score (-90 to 360)."
+        },
+        "totalScore": {
+          "type": "integer",
+          "description": "Total NEET score (-180 to 720)."
+        },
+        "accuracyPct": {
+          "type": "integer",
+          "description": "Percentage accuracy on attempted questions (0-100)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "title",
+        "testDate",
+        "physicsScore",
+        "chemistryScore",
+        "biologyScore",
+        "totalScore",
+        "accuracyPct",
+        "createdAt"
+      ]
+    },
+    "ForumPost": {
+      "title": "ForumPost",
+      "description": "Peer support and NEET doubt resolution forum post.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "Creator Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Creator display name.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "subject": {
+          "type": "string",
+          "description": "NEET subject category.",
+          "enum": ["Physics", "Chemistry", "Botany", "Zoology", "Strategy"],
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "chapter": {
+          "type": "string",
+          "description": "Related NCERT chapter.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "title": {
+          "type": "string",
+          "description": "Doubt headline.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "body": {
+          "type": "string",
+          "description": "Detailed doubt explanation or question.",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "upvotes": {
+          "type": "integer",
+          "description": "Number of helpful upvotes."
+        },
+        "replyCount": {
+          "type": "integer",
+          "description": "Number of peer replies."
+        },
+        "resolved": {
+          "type": "boolean",
+          "description": "Whether the doubt has been resolved."
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Access visibility.",
+          "enum": ["public"],
+          "minLength": 6,
+          "maxLength": 6
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "authorId",
+        "authorName",
+        "subject",
+        "chapter",
+        "title",
+        "body",
+        "upvotes",
+        "replyCount",
+        "resolved",
+        "visibility",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StudyGroup": {
+      "title": "StudyGroup",
+      "description": "Collaborative NEET peer study group for comparing progress and weekly targets.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Creator Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Creator display name.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "name": {
+          "type": "string",
+          "description": "Study group title.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "focusTopic": {
+          "type": "string",
+          "description": "Current weekly revision focus.",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "weeklyGoalHours": {
+          "type": "integer",
+          "description": "Target study hours per week."
+        },
+        "memberCount": {
+          "type": "integer",
+          "description": "Number of members in the study group."
+        },
+        "avgMockScore": {
+          "type": "integer",
+          "description": "Group average mock test score (-180 to 720)."
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Group visibility.",
+          "enum": ["public"],
+          "minLength": 6,
+          "maxLength": 6
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "ownerName",
+        "name",
+        "focusTopic",
+        "weeklyGoalHours",
+        "memberCount",
+        "avgMockScore",
+        "visibility",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Private user study profile and synchronized NEET syllabus state."
+    },
+    "/users/{userId}/mockTests/{testId}": {
+      "schema": {
+        "$ref": "#/entities/MockTestRecord"
+      },
+      "description": "Private subcollection of user mock test scores."
+    },
+    "/forumPosts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/ForumPost"
+      },
+      "description": "Public NEET doubt resolution forum posts."
+    },
+    "/studyGroups/{groupId}": {
+      "schema": {
+        "$ref": "#/entities/StudyGroup"
+      },
+      "description": "Public NEET collaborative study groups."
+    }
+  }
+}

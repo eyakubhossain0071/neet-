@@ -1,0 +1,6 @@
+{
+  "name": "AetherNEET — NEET UG Study & Analytics Workspace",
+  "description": "Comprehensive NEET UG preparation workspace with NCERT syllabus tracking, 720-scale mock test analytics, AI mentor diagnostics, revision reminders, peer doubt forum, study groups, and offline access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
